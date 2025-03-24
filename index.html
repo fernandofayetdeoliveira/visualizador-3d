@@ -1,45 +1,121 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Parklet 3D</title>
-    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.0.1/model-viewer.min.js"></script>
+    <title>Visualizador de Layouts Interativo</title>
     <style>
-        model-viewer {
-            width: 800px;
-            height: 800px;
+        body { 
+            margin: 0; 
+            font-family: Arial, sans-serif;
+        }
+        canvas { 
+            display: block; 
+        }
+        #controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            margin: 5px;
+            cursor: pointer;
+            border-radius: 3px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 20px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <model-viewer id="parklet" src="PARKLET.gltf" camera-controls auto-rotate></model-viewer>
+    <div id="controls">
+        <button onclick="carregarModelo('models/teste1.gltf')">Layout 1</button>
+        <button onclick="carregarModelo('models/teste2.gltf')">Layout 2</button>
+        <button onclick="carregarModelo('models/teste3.gltf')">Layout 3</button>
+    </div>
+    <div id="loading">Carregando...</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 
     <script>
-        const modelViewer = document.getElementById('parklet');
-        let sensitivity = 0.5; // Ajuste este valor para controlar a sensibilidade
+        // Configuração inicial
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xeeeeee);
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-        modelViewer.addEventListener('mousedown', (event) => {
-            let startX = event.clientX;
-            let startY = event.clientY;
-            let startOrbit = modelViewer.cameraOrbit.split(' ');
+        // Controles de navegação
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        camera.position.set(10, 10, 10);
+        controls.update();
 
-            const mouseMoveHandler = (event) => {
-                const deltaX = (event.clientX - startX) * sensitivity;
-                const deltaY = (event.clientY - startY) * sensitivity;
+        // Luzes (ajuste conforme necessário)
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(10, 10, 10);
+        scene.add(directionalLight);
 
-                let alpha = parseFloat(startOrbit[0]) - deltaX;
-                let beta = parseFloat(startOrbit[1]) + deltaY;
+        // Variável para armazenar o modelo atual
+        let modeloAtual = null;
 
-                modelViewer.cameraOrbit = `${alpha}deg ${beta}deg ${startOrbit[2]}`;
-            };
+        // Função para carregar modelos
+        function carregarModelo(caminhoModelo) {
+            document.getElementById('loading').style.display = 'block';
+            
+            // Remove o modelo atual da cena
+            if (modeloAtual) {
+                scene.remove(modeloAtual);
+            }
 
-            const mouseUpHandler = () => {
-                document.removeEventListener('mousemove', mouseMoveHandler);
-                document.removeEventListener('mouseup', mouseUpHandler);
-            };
+            // Carrega o novo modelo
+            const loader = new THREE.GLTFLoader();
+            loader.load(caminhoModelo, (gltf) => {
+                modeloAtual = gltf.scene;
+                scene.add(modeloAtual);
+                document.getElementById('loading').style.display = 'none';
+            }, undefined, (error) => {
+                console.error('Erro ao carregar o modelo:', error);
+                document.getElementById('loading').style.display = 'none';
+            });
+        }
 
-            document.addEventListener('mousemove', mouseMoveHandler);
-            document.addEventListener('mouseup', mouseUpHandler);
+        // Animação
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // Redimensionar janela
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
         });
+
+        // Carrega o primeiro modelo por padrão
+        carregarModelo('models/teste1.gltf');
     </script>
 </body>
 </html>
