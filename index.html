@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Visualizador 3D</title>
-  <head>
-    <title>Visualizador 3D</title>
+    <title>Visualizador 3D com ViewCube</title>
     <style>
         body { 
             margin: 0;
@@ -13,89 +11,152 @@
         /* ============== ESTILOS DOS BOTÕES ============== */
         #controls {
             position: absolute;
-            bottom: 20px;
+            bottom: 15px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 100;
-            background: #ffccf5; /* Roxo claro */
-            padding: 15px;
-            border-radius: 25px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            background: rgba(255, 204, 245, 0.3);
+            backdrop-filter: blur(5px);
+            padding: 10px 15px;
+            border-radius: 20px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            display: flex;
+            gap: 8px;
         }
 
         button {
-            background: transparent;
+            background: rgba(255, 255, 255, 0.15);
             color: white;
-            border: 2px solid white;
-            padding: 12px 25px;
-            margin: 0 10px;
-            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 15px;
+            margin: 0;
+            border-radius: 15px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 14px;
             font-weight: 500;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
+            min-width: 80px;
         }
 
         button:hover {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 480px) {
+            #controls { bottom: 10px; padding: 8px 12px; }
+            button { padding: 6px 12px; font-size: 12px; min-width: 70px; }
         }
     </style>
 </head>
 <body>
     <div id="controls">
-        <button onclick="carregarModelo('models/teste1.gltf')">Layout 1</button>
-        <button onclick="carregarModelo('models/teste2.gltf')">Layout 2</button>
-        <button onclick="carregarModelo('models/teste3.gltf')">Layout 3</button>
+        <button onclick="carregarModelo('models/teste1.glb')">Layout 1</button>
+        <button onclick="carregarModelo('models/teste2.glb')">Layout 2</button>
+        <button onclick="carregarModelo('models/teste3.glb')">Layout 3</button>
     </div>
 
+    <!-- Dependências Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+
+    <!-- Script principal -->
     <script>
         let modeloAtual = null;
         const scene = new THREE.Scene();
         scene.background = new THREE.Color(0xeeeeee);
-
         const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(10, 10, 10);
-
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
-
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-        // ================== CUBO DE VISUALIZAÇÃO ================== //
-        const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
-        const cubeMaterial = new THREE.MeshBasicMaterial({ 
-            color: 0x00ff00, 
-            wireframe: true // Cubo transparente
+        // ================== VIEWCUBE ================== //
+        function criarViewCube() {
+            const tamanho = 5;
+            const grupo = new THREE.Group();
+            const rotulos = ["Frente", "Trás", "Esquerda", "Direita", "Topo", "Base"];
+            const cores = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
+
+            rotulos.forEach((rotulo, index) => {
+                const geometria = new THREE.PlaneGeometry(tamanho, tamanho);
+                const material = new THREE.MeshBasicMaterial({ 
+                    color: cores[index],
+                    transparent: true,
+                    opacity: 0.5,
+                    side: THREE.DoubleSide
+                });
+                const face = new THREE.Mesh(geometria, material);
+                
+                switch(index) {
+                    case 0: face.rotation.y = Math.PI; break;
+                    case 1: face.rotation.y = 0; break;
+                    case 2: face.rotation.y = Math.PI/2; break;
+                    case 3: face.rotation.y = -Math.PI/2; break;
+                    case 4: face.rotation.x = -Math.PI/2; break;
+                    case 5: face.rotation.x = Math.PI/2; break;
+                }
+
+                // Adicionar texto (opcional)
+                const loader = new THREE.FontLoader();
+                loader.load('https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', (font) => {
+                    const textGeometry = new THREE.TextGeometry(rotulo, {
+                        font: font,
+                        size: 0.5,
+                        height: 0.1
+                    });
+                    const textMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const texto = new THREE.Mesh(textGeometry, textMaterial);
+                    texto.position.z = 0.51;
+                    face.add(texto);
+                });
+
+                grupo.add(face);
+            });
+
+            grupo.position.set(15, 15, 0);
+            return grupo;
+        }
+
+        scene.add(criarViewCube());
+
+        // ================== INTERATIVIDADE ================== //
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        window.addEventListener('click', (event) => {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+            
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children[0].children); // Acessa as faces do ViewCube
+
+            if (intersects.length > 0) {
+                const faceClicada = intersects[0].object.parent; // Ajuste para pegar a face correta
+                const direcao = new THREE.Vector3();
+                
+                switch(scene.children[0].children.indexOf(faceClicada)) {
+                    case 0: direcao.set(0, 0, 1); break;  // Frente
+                    case 1: direcao.set(0, 0, -1); break; // Trás
+                    case 2: direcao.set(-1, 0, 0); break; // Esquerda
+                    case 3: direcao.set(1, 0, 0); break;  // Direita
+                    case 4: direcao.set(0, 1, 0); break;  // Topo
+                    case 5: direcao.set(0, -1, 0); break; // Base
+                }
+
+                new TWEEN.Tween(camera.position)
+                    .to(direcao.multiplyScalar(20), 1000)
+                    .easing(TWEEN.Easing.Quadratic.Out)
+                    .start();
+            }
         });
-        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        cube.position.set(0, 0.5, 0); // Posiciona o cubo no chão
-        scene.add(cube);
-
-        // ================== ASSISTENTE DE NAVEGAÇÃO ================== //
-        // Grade no chão (tamanho 10x10, divisões a cada 1 unidade)
-        const gridHelper = new THREE.GridHelper(10, 10);
-        gridHelper.material.opacity = 0.3; // Transparência
-        gridHelper.material.transparent = true;
-        scene.add(gridHelper);
-
-        // Eixos XYZ (tamanho 5 unidades)
-        const axesHelper = new THREE.AxesHelper(5);
-        scene.add(axesHelper);
-
-        // ================== LUZES ================== //
-        const light = new THREE.DirectionalLight(0xffffff, 1);
-        light.position.set(10, 10, 10);
-        scene.add(light);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
         // ================== CARREGAMENTO DE MODELOS ================== //
         function carregarModelo(caminho) {
             if (modeloAtual) scene.remove(modeloAtual);
-
             new THREE.GLTFLoader().load(caminho, (gltf) => {
                 modeloAtual = gltf.scene;
                 scene.add(modeloAtual);
@@ -105,14 +166,11 @@
         // ================== ANIMAÇÃO ================== //
         function animate() {
             requestAnimationFrame(animate);
-            cube.rotation.y += 0.01; // Animação do cubo girando
+            TWEEN.update();
             controls.update();
             renderer.render(scene, camera);
         }
         animate();
-
-        // Carregar modelo inicial
-        carregarModelo('models/teste1.gltf');
     </script>
 </body>
 </html>
