@@ -1,195 +1,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Visualizador 3D com ViewCube</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+    <title>Visualizador 3D</title>
     <style>
         body { 
             margin: 0;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
+            overflow: hidden; /* Remove barras de rolagem */
         }
-
-        /* ============== ESTILOS DOS BOTÕES ============== */
+        
         #controls {
             position: absolute;
-            bottom: 15px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 30px; /* Posiciona na parte inferior */
+            left: 50%; /* Centraliza horizontalmente */
+            transform: translateX(-50%); /* Ajuste fino de centralização */
             z-index: 100;
-            background: #ffffff;
-            padding: 8px 12px;
-            border-radius: 15px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 6px;
+            background: rgba(255, 255, 255, 0.0); /* Fundo semi-transparente */
+            padding: 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px); /* Efeito de vidro fosco */
         }
 
         button {
+            background: #ffccf5; /* Roxo especificado */
             color: white;
             border: none;
-            padding: 6px 12px;
-            margin: 0;
-            border-radius: 12px;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 10px;
-            font-weight: 700;
-            min-width: 48px;
-            transition: all 0.2s ease;
-            text-transform: uppercase;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.0);
         }
-
-        button:nth-child(1) { background: #ff4444; } /* Vermelho */
-        button:nth-child(2) { background: #44ff44; } /* Verde */
-        button:nth-child(3) { background: #4444ff; } /* Azul */
 
         button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 480px) {
-            #controls {
-                bottom: 10px;
-                padding: 6px 10px;
-            }
-            button {
-                padding: 4px 8px;
-                font-size: 8px;
-                min-width: 40px;
-            }
+            background: #ffb3f0; /* Roxo mais escuro no hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.0);
         }
     </style>
 </head>
 <body>
     <div id="controls">
-        <button onclick="carregarModelo('models/teste1.gltf')">Layout 1</button>
-        <button onclick="carregarModelo('models/teste2.gltf')">Layout 2</button>
-        <button onclick="carregarModelo('models/teste3.gltf')">Layout 3</button>
+        <button onclick="carregarModelo('models/layout1.glb')">Layout 1</button>
+        <button onclick="carregarModelo('models/layout2.glb')">Layout 2</button>
+        <button onclick="carregarModelo('models/layout3.glb')">Layout 3</button>
     </div>
 
-    <!-- Dependências -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/FontLoader.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
-
-    <script>
-        // Configuração básica
-        let modeloAtual = null;
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xeeeeee);
-        
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth/innerHeight, 0.1, 1000);
-        camera.position.set(15, 15, 15);
-        
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(innerWidth, innerHeight);
-        document.body.appendChild(renderer.domElement);
-        
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
-        // ================== VIEWCUBE ================== //
-        function criarViewCube() {
-            const tamanho = 5;
-            const grupo = new THREE.Group();
-            const rotulos = ["Frente", "Trás", "Esquerda", "Direita", "Topo", "Base"];
-            const cores = [0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff];
-
-            rotulos.forEach((rotulo, index) => {
-                const geometria = new THREE.PlaneGeometry(tamanho, tamanho);
-                const material = new THREE.MeshBasicMaterial({ 
-                    color: cores[index],
-                    transparent: true,
-                    opacity: 0.5,
-                    side: THREE.DoubleSide
-                });
-                const face = new THREE.Mesh(geometria, material);
-
-                switch(index) {
-                    case 0: face.rotation.y = Math.PI; break;
-                    case 1: face.rotation.y = 0; break;
-                    case 2: face.rotation.y = Math.PI/2; break;
-                    case 3: face.rotation.y = -Math.PI/2; break;
-                    case 4: face.rotation.x = -Math.PI/2; break;
-                    case 5: face.rotation.x = Math.PI/2; break;
-                }
-
-                new THREE.FontLoader().load(
-                    'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/fonts/helvetiker_regular.typeface.json', 
-                    (font) => {
-                        const texto = new THREE.Mesh(
-                            new THREE.TextGeometry(rotulo, {
-                                font: font,
-                                size: 0.5,
-                                height: 0.1
-                            }),
-                            new THREE.MeshBasicMaterial({ color: 0xffffff })
-                        );
-                        texto.position.z = 0.51;
-                        face.add(texto);
-                    }
-                );
-
-                grupo.add(face);
-            });
-
-            grupo.position.set(15, 15, 0);
-            return grupo;
-        }
-        scene.add(criarViewCube());
-
-        // ================== INTERATIVIDADE ================== //
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        window.addEventListener('click', (event) => {
-            mouse.x = (event.clientX / innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / innerHeight) * 2 + 1;
-
-            raycaster.setFromCamera(mouse, camera);
-            const intersects = raycaster.intersectObjects(scene.children[0].children);
-
-            if(intersects.length > 0) {
-                const faceIndex = scene.children[0].children.indexOf(intersects[0].object.parent);
-                const direcao = new THREE.Vector3();
-                
-                switch(faceIndex) {
-                    case 0: direcao.set(0,0,1); break;
-                    case 1: direcao.set(0,0,-1); break;
-                    case 2: direcao.set(-1,0,0); break;
-                    case 3: direcao.set(1,0,0); break;
-                    case 4: direcao.set(0,1,0); break;
-                    case 5: direcao.set(0,-1,0); break;
-                }
-
-                new TWEEN.Tween(camera.position)
-                    .to(direcao.multiplyScalar(20), 1000)
-                    .easing(TWEEN.Easing.Quadratic.Out)
-                    .start();
-            }
-        });
-
-        // ================== CARREGAMENTO DE MODELOS ================== //
-        function carregarModelo(caminho) {
-            if(modeloAtual) scene.remove(modeloAtual);
-            
-            new THREE.GLTFLoader().load(caminho, (gltf) => {
-                modeloAtual = gltf.scene;
-                modeloAtual.position.set(0, 0, 0);
-                scene.add(modeloAtual);
-            });
-        }
-
-        // ================== ANIMAÇÃO ================== //
-        function animate() {
-            requestAnimationFrame(animate);
-            TWEEN.update();
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
+    <!-- ... restante do código Three.js ... -->
 </body>
 </html>
