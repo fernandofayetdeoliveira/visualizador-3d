@@ -1,104 +1,62 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Visualizador 3D com LDrawLoader</title>
+<title>Visualizador 3D</title>
+     <!-- Adicione a fonte Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
+<style>
+        body { 
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif; /* Fonte aplicada ao corpo */
     <style>
-        body { margin: 0; }
-        #info { position: absolute; top: 10px; left: 10px; color: #444; }
-    </style>
+        body { 
+            margin: 0;
+            overflow: hidden; /* Remove barras de rolagem */
+        }
+        
+        #controls {
+            position: absolute;
+            bottom: 30px; /* Posiciona na parte inferior */
+            left: 50%; /* Centraliza horizontalmente */
+            transform: translateX(-50%); /* Ajuste fino de centralização */
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.0); /* Fundo semi-transparente */
+            padding: 15px;
+            border-radius: 25px;
+            backdrop-filter: blur(5px); /* Efeito de vidro fosco */
+        }
+
+        button {
+            background: #ffccf5; /* Roxo especificado */
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.0);
+        }
+
+        button:hover {
+            background: #ffb3f0; /* Roxo mais escuro no hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.0);
+        }
+        /* ... (mantenha o CSS dos botões anterior) ... */
+</style>
 </head>
 <body>
-    <div id="info">three.js - LDrawLoader</div>
+@@ -54,7 +12,8 @@
+<button onclick="carregarModelo('models/teste2.gltf')">Layout 2</button>
+<button onclick="carregarModelo('models/teste3.gltf')">Layout 3</button>
+</div>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 
-    <script type="importmap">
-        {
-            "imports": {
-                "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
-                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
-            }
-        }
-    </script>
-
-    <script type="module">
-        import * as THREE from 'three';
-        import { GUI } from 'https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/libs/lil-gui.module.min.js';
-        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        import { LDrawLoader } from 'three/addons/loaders/LDrawLoader.js';
-        import { LDrawUtils } from 'three/addons/utils/LDrawUtils.js';
-        import { LDrawConditionalLineMaterial } from 'three/addons/materials/LDrawConditionalLineMaterial.js';
-
-        let camera, scene, renderer, controls, gui;
-        let model;
-
-        // Configurações do loader
-        const guiData = {
-            displayLines: true,
-            conditionalLines: true,
-            smoothNormals: true,
-            flatColors: false,
-            mergeModel: false
-        };
-
-        init();
-
-        function init() {
-            // Configuração da cena
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xdeebed);
-
-            // Câmera
-            camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
-            camera.position.set(150, 200, 250);
-
-            // Renderizador
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            document.body.appendChild(renderer.domElement);
-
-            // Controles
-            controls = new OrbitControls(camera, renderer.domElement);
-            controls.enableDamping = true;
-
-            // GUI
-            createGUI();
-
-            // Carregar modelo
-            loadModel('models/seu_modelo.ldr');
-        }
-
-        function loadModel(path) {
-            const loader = new LDrawLoader();
-            loader.setConditionalLineMaterial(LDrawConditionalLineMaterial);
-            loader.smoothNormals = guiData.smoothNormals;
-
-            loader.load(path, (model) => {
-                if (model) scene.add(model);
-                updateObjectsVisibility();
-            });
-        }
-
-        function updateObjectsVisibility() {
-            model.traverse((child) => {
-                if (child.isLineSegments) {
-                    child.visible = child.isConditionalLine ? guiData.conditionalLines : guiData.displayLines;
-                }
-            });
-        }
-
-        function createGUI() {
-            gui = new GUI();
-            
-            gui.add(guiData, 'displayLines').name('Mostrar Linhas').onChange(updateObjectsVisibility);
-            gui.add(guiData, 'conditionalLines').name('Linhas Condicionais').onChange(updateObjectsVisibility);
-            gui.add(guiData, 'smoothNormals').name('Normais Suaves').onChange(() => loadModel('models/seu_modelo.ldr'));
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-    </script>
-</body>
-</html>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script>
