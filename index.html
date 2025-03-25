@@ -1,135 +1,75 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Visualizador 3D com Rotação Automática</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700&display=swap" rel="stylesheet">
-    <style>
-        /* Mantenha todos os estilos anteriores */
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif;
-        }
+<script>
+    let modeloAtual = null;
+    let autoRotate = true;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xF8F9FC);
+    
+    const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
+    camera.position.set(30, 30, 30);
+    
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+    
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.autoRotate = true; // Usar rotação automática do OrbitControls
+    controls.autoRotateSpeed = 2; // Velocidade ajustável
+    controls.enableDamping = true; // Suaviza o movimento
+    controls.dampingFactor = 0.05;
 
-        #controls {
-            /* Estilos anteriores permanecem */
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 8px;
-        }
+    // Iluminação (mantido igual)
+    scene.add(new THREE.AmbientLight(0xFFFFFF, 0.8));
+    const luzDirecional = new THREE.DirectionalLight(0xFFFFFF, 1);
+    luzDirecional.position.set(10, 20, 15);
+    scene.add(luzDirecional);
 
-        button {
-            /* Estilos anteriores permanecem */
-            background: #7F56D9;
-            color: white;
-            border: none;
-            padding: 8px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s;
-            min-width: 100px;
-        }
-
-        @media (max-width: 480px) {
-            /* Estilos responsivos permanecem */
-        }
-    </style>
-</head>
-<body>
-    <div id="controls">
-        < <button onclick="carregarModelo('models/teste1.gltf')">Layout 1</button>
-        <button onclick="carregarModelo('models/teste2.gltf')">Layout 2</button>
-        <button onclick="carregarModelo('models/teste3.gltf')">Layout 3</button>
-        <button onclick="toggleRotacao()" id="toggleRotacao">Parar Rotação</button>
-    </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
-    <script>
-        let modeloAtual = null;
-        let autoRotate = true; // Controle de rotação automática
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0xF8F9FC);
+    function carregarModelo(caminho) {
+        if (modeloAtual) scene.remove(modeloAtual);
         
-        // Câmera mais afastada
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 1000);
-        camera.position.set(30, 30, 30);
-        
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-        
-        const controls = new OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 0, 0);
-        controls.update();
-
-        // Iluminação
-        scene.add(new THREE.AmbientLight(0xFFFFFF, 0.8));
-        const luzDirecional = new THREE.DirectionalLight(0xFFFFFF, 1);
-        luzDirecional.position.set(10, 20, 15);
-        scene.add(luzDirecional);
-
-        function carregarModelo(caminho) {
-            if (modeloAtual) scene.remove(modeloAtual);
+        new THREE.GLTFLoader().load(caminho, (gltf) => {
+            modeloAtual = gltf.scene;
             
-            new THREE.GLTFLoader().load(caminho, (gltf) => {
-                modeloAtual = gltf.scene;
-                
-                // Centralizar modelo
-                const box = new THREE.Box3().setFromObject(modeloAtual);
-                const center = box.getCenter(new THREE.Vector3());
-                modeloAtual.position.sub(center);
-                
-                scene.add(modeloAtual);
-                
-                // Reiniciar rotação automática
-                autoRotate = true;
-                document.getElementById('toggleRotacao').textContent = 'Parar Rotação';
-                
-                // Ajustar câmera
-                const tamanho = box.getSize(new THREE.Vector3()).length();
-                camera.position.copy(center).add(new THREE.Vector3(tamanho, tamanho, tamanho));
-                controls.update();
-                
-            }, undefined, (erro) => {
-                console.error('Erro ao carregar:', erro);
-            });
-        }
-
-        // Controle de rotação
-        function toggleRotacao() {
-            autoRotate = !autoRotate;
-            document.getElementById('toggleRotacao').textContent = 
-                autoRotate ? 'Parar Rotação' : 'Iniciar Rotação';
-        }
-
-        function animate() {
-            requestAnimationFrame(animate);
+            // Centralizar e ajustar câmera
+            const box = new THREE.Box3().setFromObject(modeloAtual);
+            const center = box.getCenter(new THREE.Vector3());
+            modeloAtual.position.sub(center);
             
-            // Rotação automática
-            if (autoRotate && modeloAtual) {
-                modeloAtual.rotation.y += 0.005; // Ajuste a velocidade aqui
-            }
+            scene.add(modeloAtual);
             
+            // Atualizar controles
+            controls.target.copy(center); // Foco no centro do modelo
             controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
+            
+            // Ajustar posição da câmera
+            const tamanho = box.getSize(new THREE.Vector3()).length();
+            camera.position.copy(center).add(new THREE.Vector3(0, 0, tamanho * 2)); // Posição mais lógica
+            camera.lookAt(center);
+            
+        }, undefined, (erro) => {
+            console.error('Erro ao carregar:', erro);
+        });
+    }
 
-        // Carregar primeiro modelo
-        carregarModelo('models/teste1.gltf');
-    </script>
-</body>
-</html>
+    function toggleRotacao() {
+        controls.autoRotate = !controls.autoRotate; // Usar o controle nativo
+        document.getElementById('toggleRotacao').textContent = 
+            controls.autoRotate ? 'Parar Rotação' : 'Iniciar Rotação';
+    }
+
+    function animate() {
+        requestAnimationFrame(animate);
+        controls.update(); // Atualiza controles com damping
+        renderer.render(scene, camera);
+    }
+    animate();
+
+    // Carregar primeiro modelo
+    carregarModelo('models/teste1.gltf');
+
+    // Redimensionamento responsivo
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+</script>
