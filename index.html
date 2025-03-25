@@ -2,50 +2,8 @@
 <html>
 <head>
     <title>Visualizador 3D</title>
-     <!-- Adicione a fonte Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { 
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Inter', sans-serif; /* Fonte aplicada ao corpo */
-    <style>
-        body { 
-            margin: 0;
-            overflow: hidden; /* Remove barras de rolagem */
-        }
-        
-        #controls {
-            position: absolute;
-            bottom: 30px; /* Posiciona na parte inferior */
-            left: 50%; /* Centraliza horizontalmente */
-            transform: translateX(-50%); /* Ajuste fino de centralização */
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.0); /* Fundo semi-transparente */
-            padding: 15px;
-            border-radius: 25px;
-            backdrop-filter: blur(5px); /* Efeito de vidro fosco */
-        }
-
-        button {
-            background: #ffccf5; /* Roxo especificado */
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            margin: 0 10px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.0);
-        }
-
-        button:hover {
-            background: #ffb3f0; /* Roxo mais escuro no hover */
-            transform: translateY(-2px);
-            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.0);
-        }
+        /* ... (mantenha o CSS dos botões anterior) ... */
     </style>
 </head>
 <body>
@@ -54,7 +12,8 @@
         <button onclick="carregarModelo('models/teste2.gltf')">Layout 2</button>
         <button onclick="carregarModelo('models/teste3.gltf')">Layout 3</button>
     </div>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <script>
