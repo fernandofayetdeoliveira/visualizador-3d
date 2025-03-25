@@ -2,8 +2,43 @@
 <html>
 <head>
     <title>Visualizador 3D</title>
+  <head>
+    <title>Visualizador 3D</title>
     <style>
-        /* ... (mantenha o CSS dos botões anterior) ... */
+        body { 
+            margin: 0;
+            overflow: hidden;
+        }
+
+        /* ============== ESTILOS DOS BOTÕES ============== */
+        #controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            background: #ffccf5; /* Roxo claro */
+            padding: 15px;
+            border-radius: 25px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        button {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+            padding: 12px 25px;
+            margin: 0 10px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
     </style>
 </head>
 <body>
